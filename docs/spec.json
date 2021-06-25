@@ -1,0 +1,213 @@
+{
+    "endpoints": [
+        {
+            "path": "/api/models/",
+            "method": "POST",
+            "body": {
+                "username": "(string) MAL username"
+            },
+            "params": null,
+            "responses": [
+                {
+                    "code": 202,
+                    "reason": "model for given username doesn't exists, so it starts creating... (VERY SLOW)",
+                    "body": {
+                        "message": "building model"
+                    }
+                },
+                {
+                    "code": 200,
+                    "reason": "model for given username already exists, should get instead",
+                    "body": {
+                        "message": "model already exists"
+                    }
+                },
+                {
+                    "code": 400,
+                    "reason": "invalid request body somehow (if in debug will return Exception raised)",
+                    "body": {
+                        "error": "exception raised if in DEBUG"
+                    }
+                }
+            ]
+        },
+        {
+            "path": "/api/models/<username>/",
+            "method": "GET",
+            "body": null,
+            "params": null,
+            "responses": [
+                {
+                    "code": 200,
+                    "reason": "found model",
+                    "body": {
+                        "model": {
+                            "username": "(string) MAL username",
+                            "status": "(string) started, fetching, building or done"
+                        }
+                    }
+                },
+                {
+                    "code": 404,
+                    "reason": "model doesn't exist, should create (POST) instead",
+                    "body": {
+                        "error": "model not found"
+                    }
+                },
+                {
+                    "code": 400,
+                    "reason": "invalid request body somehow (if in debug will return Exception raised)",
+                    "body": {
+                        "error": "exception raised if in DEBUG"
+                    }
+                }
+            ]
+        },
+        {
+            "path": "/api/recommendations/<username>/<anime_id>/",
+            "method": "GET",
+            "body": null,
+            "params": null,
+            "responses": [
+                {
+                    "code": 200,
+                    "reason": "recommendation found and returned",
+                    "body": {
+                        "recommendation": {
+                            "username":"(string) MAL username",
+                            "anime_id":"(string) anime_id",
+                            "score": "(number) recommendation score"
+                        }
+                    }
+                },
+                {
+                    "code": 202,
+                    "reason": "Model is currently creating the recommendations",
+                    "body": {
+                        "recommendation": "CREATING"
+                    }
+                },
+                {
+                    "code": 400,
+                    "reason": "model for username doesn't exist",
+                    "body": {
+                        "error": "exception raised if in DEBUG"
+                    }
+                },
+                {
+                    "code": 404,
+                    "reason": "recommendation not found for this anime",
+                    "body": {
+                        "error": "exception raised if in DEBUG"
+                    }
+                }
+            ]
+        }
+    ],
+    "services": [
+        "GATEWAY_API",
+        "DATA_ACCESS_LAYER",
+        "RECOMMENDATION_MODEL",
+        "EXTERNAL_APIS"
+    ],
+    "streams": {
+        "create_model": {
+            "message": {
+                "username": "username",
+                "sender_uuid": "uuid"
+            },
+            "read": [
+                "RECOMMENDATON_MODEL"
+            ],
+            "write": [
+                "GATEWAY_API"
+            ]
+        },
+        "save_model": {
+            "message": {
+                "username": "username",
+                "status": "started, fetching, building or done"
+            },
+            "read": [
+                "DATA_ACCESS_LAYER"
+            ],
+            "write": [
+                "RECOMMENDATION_MODEL",
+                "EXTERNAL_APIS"
+            ]
+        },
+        "create_recommendation": {
+            "message": {
+                "username":"username",
+                "anime_id": "anime id",
+                "sender_uuid": "uuid"
+            },
+            "read": [
+                "RECOMMENDATION_MODEL"
+            ]
+        },
+        "fetch_user_list": {
+            "message": {
+                "username": "username"
+            },
+            "read": [
+                "EXTERNAL_APIS",
+                "DATA_ACCESS_LAYER"
+            ],
+            "write": [
+                "RECOMMENDATION_MODEL"
+            ]
+        },
+        "fetch_anime": {
+            "message": {
+                "anime_id": "id"
+            },
+            "read": [
+                "EXTERNAL_APIS",
+                "DATA_ACCESS_LAYER"
+            ],
+            "write": [
+                "RECOMMENDATION_MODEL"
+            ]
+        },
+        "user_list": {
+            "message": {
+                "list": "string encoded anime list object"
+            },
+            "read": [
+                "RECOMMENDATION_MODEL",
+                "DATA_ACCESS_LAYER"
+            ],
+            "write": [
+                "EXTERNAL_APIS"
+            ]
+        },
+        "anime": {
+            "message": {
+                "username": "username",
+                "anime": "string encoded anime object"
+            },
+            "read": [
+                "RECOMMENDATION_MODEL",
+                "DATA_ACCESS_LAYER"
+            ],
+            "write": [
+                "EXTERNAL_APIS"
+            ]
+        },
+        "save_recommendation": {
+            "message": {
+                "anime_id": "id",
+                "username": "username",
+                "prediction": "0-10 value (mostly)"
+            },
+            "read": [
+                "RECOMMENDATION_MODEL",
+                "DATA_ACCESS_LAYER"
+            ],
+            "write": [
+                "EXTERNAL_APIS"
+            ]
+        }        
+    }
+}

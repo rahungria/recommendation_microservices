@@ -1,0 +1,18 @@
+FROM python:3.9-slim
+
+RUN mkdir /app
+
+WORKDIR /app
+
+COPY requirements.txt .
+COPY requirements.dev.txt .
+
+RUN python3 -m venv .venv
+
+RUN .venv/bin/pip install -Ur requirements.dev.txt
+
+COPY . .
+
+RUN ["chmod", "-R", "+x", "tools"]
+
+CMD ["/bin/bash", "./tools/serve.sh"]

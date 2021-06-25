@@ -1,0 +1,86 @@
+version: "3.7"
+
+services:       
+    redis:
+        container_name: "redis"
+        image: "redis:alpine"
+
+    postgres:
+        container_name: "postgres"
+        build: 
+            context: "services/postgres"
+            dockerfile: "dockerfile"
+        volumes: 
+            - "rec_sys_psql_data:/var/lib/postgresql/data"
+        env_file: 
+            - "./.env"
+
+    gateway_api:
+        container_name: "gateway_api"
+        build:
+            context: "services/gateway_api"
+            dockerfile: "dockerfile"
+        depends_on: 
+            - "redis"
+        ports: 
+            - "8001:80"
+        env_file: 
+            - "./.env"
+        depends_on: 
+            - "redis"
+            - "postgres"
+
+    async_dal:
+        container_name: "async_dal"
+        build:
+            context: "services/async_dal"
+            dockerfile: "dockerfile"
+        depends_on:
+            - "redis"
+        volumes:
+            - "dal_db:/app/db"
+        env_file: 
+            - "./.env"
+        depends_on: 
+            - "redis"
+
+    sync_dal:
+        container_name: "sync_dal"
+        build:
+            context: "services/sync_dal"
+            dockerfile: "dockerfile"
+        ports: 
+            - "8002:80"
+        env_file: 
+            - "./.env"
+        depends_on: 
+            - "postgres"
+
+    external_api:
+        container_name: "external_api"
+        build:
+            context: "services/external_api"
+            dockerfile: "dockerfile"
+        volumes:
+            - "./services/external_api/cache:/app/cache"
+        env_file: 
+            - "./.env"
+        depends_on: 
+            - "redis"
+
+    recommendation_model:
+        container_name: "recommendation_model"
+        build:
+            context: "./services/rec_model"
+            dockerfile: "dockerfile"
+        volumes:
+            - "./services/rec_model/cache:/app/cache"
+        env_file: 
+            - "./.env"
+        depends_on: 
+            - "redis"
+        
+
+volumes:
+    rec_sys_psql_data:
+    dal_db:

@@ -1,0 +1,17 @@
+FROM python:3.9-slim
+
+RUN mkdir /app
+
+WORKDIR /app
+
+COPY requirements.txt .
+
+RUN ["python3", "-m", "venv", ".venv"]
+RUN [".venv/bin/pip", "install", "-Ur", "requirements.txt"]
+
+COPY src src
+COPY tools tools
+
+RUN ["chmod", "+x", "tools/deploy.sh"]
+
+CMD ["/bin/bash", "tools/deploy.sh"]

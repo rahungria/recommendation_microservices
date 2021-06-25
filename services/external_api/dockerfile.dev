@@ -1,0 +1,21 @@
+FROM python:3.9-slim
+
+RUN mkdir /app
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=True
+
+COPY requirements.txt .
+COPY requirements.dev.txt .
+
+RUN ["python3", "-m", "venv", ".venv"]
+
+RUN [".venv/bin/pip", "install", "-Ur", "requirements.dev.txt"]
+
+COPY . .
+
+RUN ["chmod", "-R", "777", "tools"]
+
+# CMD ["tail", "-f", "/dev/null"]
+CMD ["/bin/bash", "tools/serve.sh"]

@@ -1,0 +1,79 @@
+version: "3.7"
+
+services:       
+    redis_dev:
+        container_name: "redis_dev"
+        image: "redis:alpine"
+    postgres_dev:
+        container_name: "postgres_dev"
+        build: 
+            context: "services/postgres"
+            dockerfile: "dockerfile"
+        env_file: 
+            - "./.dev.env"
+
+    gateway_api_dev:
+        container_name: "gateway_api_dev"
+        build:
+            context: "services/gateway_api"
+            dockerfile: "dockerfile.dev"
+        depends_on: 
+            - "redis_dev"
+        volumes: 
+            - "./services/gateway_api/src:/app/src"
+            - "./services/gateway_api/tests:/app/tests"
+            - "./services/gateway_api/tools:/app/tools"
+        ports: 
+            - "8001:8001"
+        env_file:
+            - "./.dev.env"
+
+    async_dal_dev:
+        container_name: "async_dal_dev"
+        build:
+            context: "services/async_dal"
+            dockerfile: "dockerfile.dev"
+        depends_on: 
+            - "redis_dev"
+        volumes: 
+            - "./services/async_dal/src:/app/src"
+            - "./services/async_dal/tools:/app/tools"
+            - "./services/async_dal/tests:/app/tests"
+            - "./services/async_dal/db:/app/db"
+        env_file: 
+            - "./.dev.env"
+
+    sync_dal_dev:
+        container_name: "sync_dal_dev"
+        build:
+            context: "services/sync_dal"
+            dockerfile: "dockerfile.dev"
+        env_file: 
+            - "./.dev.env"
+        ports: 
+            - "8002:8002"
+        volumes: 
+            - "./services/sync_dal/src:/app/src"
+            - "./services/sync_dal/tools:/app/tools"
+    external_api_dev:
+        container_name: "external_api_dev"
+        build:
+            context: "services/external_api"
+            dockerfile: "dockerfile.dev"
+        volumes:
+            - "./services/external_api/src:/app/src"
+            - "./services/external_api/tools:/app/tools"
+            - "./services/external_api/cache:/app/cache"
+        env_file: 
+            - "./.dev.env"
+    recommendation_model_dev:
+        container_name: "recommendation_model_dev"
+        build:
+            context: "./services/rec_model"
+            dockerfile: "dockerfile.dev"
+        volumes:
+            - "./services/rec_model/src:/app/src"
+            - "./services/rec_model/tools:/app/tools"
+            - "./services/rec_model/cache:/app/cache"
+        env_file: 
+            - "./.dev.env"
